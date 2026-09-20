@@ -23,7 +23,7 @@ fosse apenas água encontrando água:
 [foto: barcos.jpg]
 
 eu, adoçando-me com tua doçura,
-tu, aquecendo-te com meu sal,
+tu, se salgando com meu sal,
 
 e eu, em tua foz,
 viro córrego.
