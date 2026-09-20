@@ -21,7 +21,23 @@ e leva o que a areia guardava:
 uma pegada, um bilhete.
 ```
 
-Só `titulo` e o corpo são obrigatórios. As quebras de linha e os espaços são
+Só `titulo` e o corpo são obrigatórios.
+
+## Fotos dentro do poema
+
+Ponha o arquivo de imagem em `fotos/` e escreva, numa linha sozinha, no ponto
+exato do poema onde ela deve aparecer:
+
+```
+[foto: proa.jpg]
+[foto: proa.jpg | legenda opcional]
+```
+
+Use `.jpg`, `.png` ou `.webp` — HEIC (o formato do iPhone) não abre no
+navegador. Vale redimensionar para no máximo ~1800px antes de subir, para o
+site carregar rápido; converter também descarta os metadados da foto,
+inclusive a localização de GPS que o celular grava.
+ As quebras de linha e os espaços são
 preservados exatamente como você escrever — o site não reformata verso.
 
 Os poemas aparecem do mais recente para o mais antigo, pela `data`.

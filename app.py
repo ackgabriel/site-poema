@@ -23,6 +23,7 @@ import streamlit as st
 TITULO_DO_SITE = "site-poema"
 AUTOR = "Gabriel Andrade Ackermann"
 PASTA_POEMAS = Path(__file__).parent / "poemas"
+PASTA_FOTOS = Path(__file__).parent / "fotos"
 
 st.set_page_config(
     page_title=TITULO_DO_SITE,
@@ -53,6 +54,35 @@ class Poema:
             if linha.strip():
                 return linha.strip()
         return ""
+
+
+RE_FOTO = re.compile(r"^\[foto:\s*([^\]|]+?)\s*(?:\|\s*(.*?))?\s*\]$")
+
+
+def partir_em_blocos(corpo: str) -> list[tuple[str, object]]:
+    """Separa o poema em blocos de texto e marcações de foto.
+
+    Uma linha no formato `[foto: arquivo.jpg]` (ou `[foto: arquivo.jpg |
+    legenda]`) vira uma imagem naquele ponto exato do poema.
+    """
+    blocos: list[tuple[str, object]] = []
+    acumulado: list[str] = []
+
+    def despejar() -> None:
+        texto = "\n".join(acumulado).strip("\n")
+        if texto.strip():
+            blocos.append(("texto", texto))
+        acumulado.clear()
+
+    for linha in corpo.split("\n"):
+        achado = RE_FOTO.match(linha.strip())
+        if achado:
+            despejar()
+            blocos.append(("foto", (achado.group(1), achado.group(2) or "")))
+        else:
+            acumulado.append(linha)
+    despejar()
+    return blocos
 
 
 def para_html(texto: str) -> str:
@@ -193,6 +223,28 @@ CSS = """
 }
 
 .poema-respiro { height: 2.2rem; }
+
+.poema-foto { margin: 2.4rem 0 2.4rem 0; }
+div[data-testid="stImage"] {
+    display: flex;
+    justify-content: center;
+    margin: 2.6rem 0;
+}
+div[data-testid="stImage"] img {
+    border-radius: 2px;
+    filter: saturate(.92);
+    max-height: 60vh;
+    width: auto !important;
+    max-width: 100%;
+    object-fit: contain;
+}
+.poema-legenda {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: .68rem;
+    letter-spacing: .06em;
+    color: var(--tinta-fraca);
+    margin-top: .55rem;
+}
 
 .poema-nota {
     font-family: 'EB Garamond', Georgia, serif;
@@ -373,10 +425,26 @@ if poema.epigrafe:
         unsafe_allow_html=True,
     )
 
-st.markdown(
-    f'<div class="poema-corpo">{para_html(poema.corpo)}</div>',
-    unsafe_allow_html=True,
-)
+for tipo, conteudo in partir_em_blocos(poema.corpo):
+    if tipo == "texto":
+        st.markdown(
+            f'<div class="poema-corpo">{para_html(conteudo)}</div>',
+            unsafe_allow_html=True,
+        )
+    else:
+        arquivo, legenda = conteudo
+        caminho = PASTA_FOTOS / arquivo
+        st.markdown('<div class="poema-foto">', unsafe_allow_html=True)
+        if caminho.exists():
+            st.image(str(caminho))
+            if legenda:
+                st.markdown(
+                    f'<div class="poema-legenda">{html.escape(legenda)}</div>',
+                    unsafe_allow_html=True,
+                )
+        else:
+            st.warning(f"Foto não encontrada: fotos/{arquivo}")
+        st.markdown("</div>", unsafe_allow_html=True)
 
 if poema.tags:
     st.markdown(
